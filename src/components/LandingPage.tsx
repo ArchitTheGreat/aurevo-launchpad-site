@@ -1,13 +1,80 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, Shield, BarChart2, Bot, Check } from 'lucide-react';
 import heroImage from '@/assets/hero-illustration.jpg';
 
+// --- Data which would be in an external JSON file ---
+// In a real app, you would fetch this from a URL.
+const currencyData = {
+  "IN": { "symbol": "₹", "rate": 83, "locale": "en-IN" },
+  "US": { "symbol": "$", "rate": 1, "locale": "en-US" },
+  "GB": { "symbol": "£", "rate": 0.80, "locale": "en-GB" },
+  "EU": { "symbol": "€", "rate": 0.92, "locale": "de-DE" }
+};
+
+// --- Base pricing in USD, which is the source of truth ---
+const basePricing = [
+  {
+    name: "Starter",
+    baseMonthlyUSD: 9.99,
+    description: "Perfect for small businesses getting started",
+    features: ["1 Website", "Free SSL Certificate", "Hosting Included", "Basic Support", "99.9% Uptime"],
+    popular: false
+  },
+  {
+    name: "Growth",
+    baseMonthlyUSD: 29.99,
+    description: "Ideal for growing businesses",
+    features: ["3 Websites", "Analytics Dashboard", "Priority Support", "Advanced Security", "Custom Domain"],
+    popular: true
+  },
+  {
+    name: "Pro",
+    baseMonthlyUSD: 59.99,
+    description: "For established businesses",
+    features: ["Unlimited Sites", "AI Chatbot Integration", "Dedicated Manager", "White-label Options", "API Access"],
+    popular: false
+  }
+];
+
 const LandingPage = () => {
   const [isAnnual, setIsAnnual] = useState(false);
   
+  // State for region detection, regional config, and the calculated plans
+  const [region, setRegion] = useState('IN'); // Placeholder for region detection. Defaulting to 'IN'.
+  const [regionConfig, setRegionConfig] = useState(null);
+  const [pricingPlans, setPricingPlans] = useState([]);
+
+  // Effect to set the configuration based on the detected region
+  useEffect(() => {
+    // In a real app, this would be an API call to fetch the currency data.
+    // The region detection logic would also be more sophisticated.
+    const config = currencyData[region] || currencyData['US']; // Default to US if region not found
+    setRegionConfig(config);
+  }, [region]);
+
+  // Effect to recalculate prices whenever the region or billing cycle changes
+  useEffect(() => {
+    if (!regionConfig) return; // Do nothing if the config isn't loaded yet
+
+    const newPlans = basePricing.map(plan => {
+      const monthlyPrice = Math.round(plan.baseMonthlyUSD * regionConfig.rate);
+      const yearlyPrice = Math.round(monthlyPrice * 12 * 0.80); // 20% discount
+      
+      return {
+        ...plan,
+        monthlyPrice,
+        yearlyPrice,
+        period: isAnnual ? "/year" : "/month",
+      };
+    });
+
+    setPricingPlans(newPlans);
+  }, [regionConfig, isAnnual]);
+
+
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -23,74 +90,10 @@ const LandingPage = () => {
   };
 
   const features = [
-    {
-      icon: Zap,
-      title: "Fast Hosting",
-      description: "Lightning-fast loading speeds with global CDN and optimized infrastructure."
-    },
-    {
-      icon: Shield,
-      title: "Security",
-      description: "Enterprise-grade security with SSL certificates and regular backups."
-    },
-    {
-      icon: BarChart2,
-      title: "Analytics",
-      description: "Detailed insights into your website performance and visitor behavior."
-    },
-    {
-      icon: Bot,
-      title: "AI Assistance",
-      description: "Smart chatbot integration to help your customers 24/7."
-    }
-  ];
-
-  const pricingPlans = [
-    {
-      name: "Starter",
-      monthlyPrice: 999,
-      yearlyPrice: 9590,
-      period: isAnnual ? "/year" : "/month",
-      description: "Perfect for small businesses getting started",
-      features: [
-        "1 Website",
-        "Free SSL Certificate",
-        "Hosting Included",
-        "Basic Support",
-        "99.9% Uptime"
-      ],
-      popular: false
-    },
-    {
-      name: "Growth",
-      monthlyPrice: 1999,
-      yearlyPrice: 19190,
-      period: isAnnual ? "/year" : "/month",
-      description: "Ideal for growing businesses",
-      features: [
-        "3 Websites",
-        "Analytics Dashboard",
-        "Priority Support",
-        "Advanced Security",
-        "Custom Domain"
-      ],
-      popular: true
-    },
-    {
-      name: "Pro",
-      monthlyPrice: 4999,
-      yearlyPrice: 47990,
-      period: isAnnual ? "/year" : "/month",
-      description: "For established businesses",
-      features: [
-        "Unlimited Sites",
-        "AI Chatbot Integration",
-        "Dedicated Manager",
-        "White-label Options",
-        "API Access"
-      ],
-      popular: false
-    }
+    { icon: Zap, title: "Fast Hosting", description: "Lightning-fast loading speeds with global CDN and optimized infrastructure." },
+    { icon: Shield, title: "Security", description: "Enterprise-grade security with SSL certificates and regular backups." },
+    { icon: BarChart2, title: "Analytics", description: "Detailed insights into your website performance and visitor behavior." },
+    { icon: Bot, title: "AI Assistance", description: "Smart chatbot integration to help your customers 24/7." }
   ];
 
   return (
@@ -254,64 +257,67 @@ const LandingPage = () => {
             </div>
           </motion.div>
 
-          <motion.div 
-            className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-          >
-            {pricingPlans.map((plan, index) => (
-              <motion.div key={index} variants={fadeInUp}>
-                <Card className={`relative p-8 hover:shadow-card transition-all duration-300 ${
-                  plan.popular ? 'border-2 border-primary shadow-card' : 'border-0'
-                }`}>
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium">
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
-                  
-                  <CardContent className="p-0">
-                    <div className="text-center mb-8">
-                      <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
-                      <p className="text-muted-foreground mb-4">{plan.description}</p>
-                      <div className="flex items-baseline justify-center">
-                        <span className="text-4xl font-bold text-foreground">
-                          ₹{isAnnual ? plan.yearlyPrice.toLocaleString() : plan.monthlyPrice.toLocaleString()}
+          {/* Render pricing cards only when data is ready */}
+          {pricingPlans.length > 0 && regionConfig && (
+            <motion.div 
+              className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+              variants={staggerContainer}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+            >
+              {pricingPlans.map((plan, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card className={`relative p-8 hover:shadow-card transition-all duration-300 ${
+                    plan.popular ? 'border-2 border-primary shadow-card' : 'border-0'
+                  }`}>
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span className="bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium">
+                          Most Popular
                         </span>
-                        <span className="text-muted-foreground ml-1">{plan.period}</span>
                       </div>
-                      {isAnnual && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Save ₹{((plan.monthlyPrice * 12) - plan.yearlyPrice).toLocaleString()} per year
-                        </p>
-                      )}
-                    </div>
+                    )}
+                    
+                    <CardContent className="p-0">
+                      <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
+                        <p className="text-muted-foreground mb-4">{plan.description}</p>
+                        <div className="flex items-baseline justify-center">
+                          <span className="text-4xl font-bold text-foreground">
+                            {regionConfig.symbol}{isAnnual ? plan.yearlyPrice.toLocaleString(regionConfig.locale) : plan.monthlyPrice.toLocaleString(regionConfig.locale)}
+                          </span>
+                          <span className="text-muted-foreground ml-1">{plan.period}</span>
+                        </div>
+                        {isAnnual && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Save {regionConfig.symbol}{((plan.monthlyPrice * 12) - plan.yearlyPrice).toLocaleString(regionConfig.locale)} per year
+                          </p>
+                        )}
+                      </div>
 
-                    <ul className="space-y-4 mb-8">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center">
-                          <Check className="w-5 h-5 text-primary mr-3 flex-shrink-0" />
-                          <span className="text-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                      <ul className="space-y-4 mb-8">
+                        {plan.features.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-center">
+                            <Check className="w-5 h-5 text-primary mr-3 flex-shrink-0" />
+                            <span className="text-foreground">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
 
-                    <Button 
-                      variant={plan.popular ? "gradient" : "outline"} 
-                      className="w-full"
-                      size="lg"
-                    >
-                      Get Started
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
+                      <Button 
+                        variant={plan.popular ? "gradient" : "outline"} 
+                        className="w-full"
+                        size="lg"
+                      >
+                        Get Started
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </section>
 
