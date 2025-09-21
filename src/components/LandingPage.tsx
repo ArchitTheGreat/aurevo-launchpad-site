@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap, Shield, BarChart2, Bot, Check } from 'lucide-react';
 import heroImage from '@/assets/hero-illustration.jpg';
 
 const LandingPage = () => {
+  const [isAnnual, setIsAnnual] = useState(false);
+  
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -45,8 +48,9 @@ const LandingPage = () => {
   const pricingPlans = [
     {
       name: "Starter",
-      price: "₹999",
-      period: "/month",
+      monthlyPrice: 999,
+      yearlyPrice: 9590,
+      period: isAnnual ? "/year" : "/month",
       description: "Perfect for small businesses getting started",
       features: [
         "1 Website",
@@ -59,8 +63,9 @@ const LandingPage = () => {
     },
     {
       name: "Growth",
-      price: "₹1,999",
-      period: "/month",
+      monthlyPrice: 1999,
+      yearlyPrice: 19190,
+      period: isAnnual ? "/year" : "/month",
       description: "Ideal for growing businesses",
       features: [
         "3 Websites",
@@ -73,8 +78,9 @@ const LandingPage = () => {
     },
     {
       name: "Pro",
-      price: "₹4,999",
-      period: "/month",
+      monthlyPrice: 4999,
+      yearlyPrice: 47990,
+      period: isAnnual ? "/year" : "/month",
       description: "For established businesses",
       features: [
         "Unlimited Sites",
@@ -105,8 +111,7 @@ const LandingPage = () => {
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-foreground hover:text-primary transition-colors">Features</a>
               <a href="#pricing" className="text-foreground hover:text-primary transition-colors">Pricing</a>
-              <a href="#about" className="text-foreground hover:text-primary transition-colors">About</a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors">Contact</a>
+              <a href="#tos" className="text-foreground hover:text-primary transition-colors">ToS</a>
             </div>
 
             <Button variant="gradient" size="lg">
@@ -219,9 +224,34 @@ const LandingPage = () => {
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Choose the perfect plan for your business needs. All plans include hosting and security.
             </p>
+            
+            {/* Pricing Toggle */}
+            <div className="flex items-center justify-center mb-8">
+              <span className={`mr-3 ${!isAnnual ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                Monthly
+              </span>
+              <button
+                onClick={() => setIsAnnual(!isAnnual)}
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-primary transition-transform ${
+                    isAnnual ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`ml-3 ${isAnnual ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                Annual
+              </span>
+              {isAnnual && (
+                <span className="ml-2 text-sm bg-gradient-primary text-white px-2 py-1 rounded-full">
+                  Save 20%
+                </span>
+              )}
+            </div>
           </motion.div>
 
           <motion.div 
@@ -249,9 +279,16 @@ const LandingPage = () => {
                       <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
                       <p className="text-muted-foreground mb-4">{plan.description}</p>
                       <div className="flex items-baseline justify-center">
-                        <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                        <span className="text-4xl font-bold text-foreground">
+                          ₹{isAnnual ? plan.yearlyPrice.toLocaleString() : plan.monthlyPrice.toLocaleString()}
+                        </span>
                         <span className="text-muted-foreground ml-1">{plan.period}</span>
                       </div>
+                      {isAnnual && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Save ₹{((plan.monthlyPrice * 12) - plan.yearlyPrice).toLocaleString()} per year
+                        </p>
+                      )}
                     </div>
 
                     <ul className="space-y-4 mb-8">
@@ -311,8 +348,7 @@ const LandingPage = () => {
             <div className="flex items-center space-x-8 mb-4 md:mb-0">
               <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</a>
               <a href="#pricing" className="text-muted-foreground hover:text-primary transition-colors">Pricing</a>
-              <a href="#about" className="text-muted-foreground hover:text-primary transition-colors">About</a>
-              <a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
+              <a href="#tos" className="text-muted-foreground hover:text-primary transition-colors">ToS</a>
             </div>
 
             <p className="text-muted-foreground">
